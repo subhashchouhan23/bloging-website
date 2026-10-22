@@ -17,7 +17,8 @@ In scope:
 
 - Node.js CommonJS scripts (`require`, `process.argv`, CLI entry points)
 - Client: Vite + React + TypeScript (`.ts`, `.tsx`)
-- Firebase: Firestore (data), Cloud Storage (files), Hosting (deploy), no Auth yet
+- Firebase: Firestore (data), Cloud Storage (files), Hosting (deploy),
+  Authentication (Google sign-in only)
 - Firebase SDK usage isolated in `src/lib/` with typed helpers
 - A dependency-free checker, fixtures, and a `node:test` suite
 
@@ -48,6 +49,7 @@ Out of scope:
 | FR-13 | `firebase/*` imports are allowed only under `src/lib/`; components consume typed helpers |
 | FR-14 | `firebase-admin` and other backends are rejected in client code |
 | FR-15 | The only stack is React + TypeScript + Firebase; alternate frameworks, databases, routers, and data libraries are rejected |
+| FR-16 | Google sign-in uses `signInWithPopup` inside `src/lib/auth.ts`; auth state reaches components through a hook, never `firebase/auth` imports |
 
 ## 4. Non-functional requirements
 
@@ -117,3 +119,5 @@ Warnings (`--strict` promotes them):
   `app`, `db`, `storage`; helpers in `src/lib` keep SDK types away from components.
 - **No second stack:** banned-module detection is intentionally explicit and cheap,
   matching the "React + Firebase only" constraint.
+- **Auth stays in `src/lib`:** popup calls and `onAuthStateChanged` are wrapped;
+  components receive `user` and callbacks, which keeps S020 enforceable.

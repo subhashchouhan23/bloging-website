@@ -191,3 +191,10 @@ test('TC-40 main.tsx is exempt from S013', () => {
   const bad = findingsOf(path.join(fixtures, 'bad/s013-badname.tsx'));
   assert.ok(bad.some(f => f.rule === 'S013'));
 });
+
+test('TC-42 firebase auth is documented', () => {
+  const text = fs.readFileSync(path.join(root, 'references', 'firebase.md'), 'utf8');
+  assert.match(text, /Authentication/);
+  assert.match(text, /signInWithPopup/);
+  assert.match(text, /Google/);
+});

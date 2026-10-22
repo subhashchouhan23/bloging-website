@@ -51,6 +51,7 @@ Checker: `node scripts/style-check.js <paths...> [--json] [--strict]`
 | TC-39 | Clean Vite + Firebase project | check `fixtures/good-app` | exit 0, zero findings |
 | TC-40 | Entry file exemption | check `good-app/src/main.tsx`, then `bad/s013-badname.tsx` | main passes; bad file gets `S013` |
 | TC-41 | Firebase docs | `references/firebase.md` exists; `SKILL.md` mentions `S017`–`S021` | present |
+| TC-42 | Auth documented | `references/firebase.md` documents Google auth and `signInWithPopup` | present |
 
 ## C. Manual acceptance
 
@@ -59,6 +60,8 @@ Checker: `node scripts/style-check.js <paths...> [--json] [--strict]`
 | TC-31 | Read `SKILL.md` as an agent | workflow is actionable without extra context |
 | TC-32 | Apply skill to a new small script | code passes checker on first or second iteration |
 | TC-33 | User review | approved in session (recorded) |
+| TC-43 | Google signup page | `#/signup` renders card, Google button, terms and back link; no console errors |
+| TC-44 | Auth failure path | missing env or popup failure shows a readable message, app does not crash |
 
 ## Definition of done
 

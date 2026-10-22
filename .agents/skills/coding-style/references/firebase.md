@@ -1,15 +1,16 @@
 # Firebase conventions
 
 Stack: Vite + React + TypeScript, Firestore for data, Cloud Storage for files,
-Firebase Hosting for deployment. No Auth yet. No other backend, database, or
-hosting service.
+Firebase Authentication for Google sign-in, Firebase Hosting for deployment.
+No other backend, database, auth provider, or hosting service.
 
 ## Project layout
 
 ```
 src/
   lib/
-    firebase.ts    # initializeApp, db, storage
+    firebase.ts    # initializeApp, db, storage, auth
+    auth.ts        # signInWithGoogle, signOutUser, watchAuth
     posts.ts       # Firestore helpers for posts
     storage.ts     # Storage helpers
   App.tsx
@@ -43,6 +44,7 @@ VITE_FIREBASE_APP_ID=
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -56,7 +58,50 @@ const config = {
 export const app = initializeApp(config);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const auth = getAuth(app);
 ```
+
+## Authentication
+
+Google is the only provider. Keep the popup call and auth-state subscription in
+`src/lib/auth.ts`; components use the exported helpers and types (S020).
+
+```ts
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import type { User } from 'firebase/auth';
+import { auth } from './firebase';
+
+const provider = new GoogleAuthProvider();
+
+export type AuthUser = User;
+
+export function signInWithGoogle(): Promise<User> {
+  return signInWithPopup(auth, provider).then(result => result.user);
+}
+
+export function signOutUser(): Promise<void> {
+  return signOut(auth);
+}
+
+export function watchAuth(next: (user: User | null) => void) {
+  return onAuthStateChanged(auth, next);
+}
+```
+
+- Enable the Google provider and add every deploy domain to authorized domains
+- Surface auth state with a `useAuth` hook; do not read `auth.currentUser` in render
+- Map `auth/popup-closed-by-user`, `auth/popup-blocked`, and `auth/invalid-api-key`
+  to short, human messages
+- Use `user.uid` for Storage paths and document ownership; never trust the client
+  for authorization
+- Sign out with `signOutUser()`; never store tokens, passwords, or secrets
+
+## Security rules
+
+- `firestore.rules` and `storage.rules` live in the repo
+- Default deny; allow only the reads/writes the app needs
+- Validate `request.auth`, field types, and sizes in rules, not only in the client
+- Never ship `firebase-admin` or a service account to the client (S019)
 
 ## Firestore helpers
 
@@ -97,13 +142,6 @@ export async function uploadPostImage(postId: string, file: File): Promise<strin
 }
 ```
 
-## Security rules
-
-- `firestore.rules` and `storage.rules` live in the repo
-- Default deny; allow only the reads/writes the app needs
-- Validate field types and sizes in rules, not only in the client
-- Never ship `firebase-admin` or a service account to the client (S019)
-
 ## Deploy
 
 ```bash
@@ -118,5 +156,5 @@ firebase deploy --only hosting,firestore:rules,storage
 ## Do not add
 
 No Next.js, router, UI kit, state library, axios/fetch wrapper, react-query,
-Supabase, Express, Prisma, or another database. The client talks to Firebase
-directly through `src/lib` (S021).
+Supabase, Express, Prisma, another database, or another auth provider. The
+client talks to Firebase directly through `src/lib` (S021).

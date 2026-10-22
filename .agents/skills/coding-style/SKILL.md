@@ -12,8 +12,8 @@ that uses Firebase for data, file storage, and deployment.
 ## Stack
 
 - Client: Vite + React + TypeScript, deployed to Firebase Hosting
-- Data: Firestore; files: Cloud Storage; no Auth yet
-- Firebase SDK is isolated in `src/lib/` (`firebase.ts` for init, domain helpers like `posts.ts`, `storage.ts`)
+- Data: Firestore; files: Cloud Storage; auth: Google sign-in via Firebase Authentication
+- Firebase SDK is isolated in `src/lib/` (`firebase.ts` for init, `auth.ts`, domain helpers like `posts.ts`, `storage.ts`)
 - Nothing else: no Next.js, router, UI kit, axios, react-query, or alternate backend
 
 
@@ -114,10 +114,17 @@ node scripts/style-check.js src --strict
 # run the suite
 node --test test/
 
-# deploy the client
+# deploy the client and rules
 npm run build
 firebase deploy --only hosting,firestore:rules,storage
 ```
+
+## Auth
+
+- Google only: `signInWithPopup` with `GoogleAuthProvider`, wrapped in `src/lib/auth.ts`
+- Auth state comes from `onAuthStateChanged` through a hook; components never import `firebase/auth`
+- Treat the signed-in user as UI state only; enforce permissions in `firestore.rules` and `storage.rules`
+- Show a readable message for `auth/*` errors; never log tokens or credentials
 
 ## Review checklist
 
