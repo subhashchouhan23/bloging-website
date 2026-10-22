@@ -117,14 +117,154 @@ body {
   background: #f7f7f7;
 }
 
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.site-user {
+  max-width: 16ch;
+  overflow: hidden;
+  color: #111;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-button,
+.signup-link {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #111;
+  background: none;
+  color: #111;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link-button:hover,
+.signup-link:hover,
+.signup-back:hover {
+  background: #111;
+  color: #fff;
+}
+
+.signup {
+  width: min(720px, 100% - 48px);
+  margin: 0 auto;
+  padding: 64px 0 96px;
+}
+
+.signup-card {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 40px;
+  border: 1px solid #111;
+}
+
+.signup-eyebrow {
+  margin: 0;
+  color: #555;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signup-title {
+  margin: 8px 0 10px;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.signup-copy {
+  margin: 0 0 22px;
+  color: #333;
+}
+
+.signup-note,
+.signup-error {
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border-left: 3px solid #111;
+  background: #f7f7f7;
+  color: #333;
+  font-size: 0.82rem;
+}
+
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.google-button:hover:not(:disabled) {
+  background: #111;
+  color: #fff;
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.google-icon {
+  display: block;
+}
+
+.signup-terms {
+  margin: 18px 0 0;
+  color: #555;
+  font-size: 0.76rem;
+}
+
+.signup-back {
+  display: inline-block;
+  margin-top: 18px;
+  border-bottom: 1px solid #111;
+  color: #111;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
 @media (max-width: 560px) {
   .site-header {
     flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 8px;
     padding-top: 32px;
+  }
+
+  .site-actions {
+    flex-wrap: wrap;
   }
 
   .post-title {
     font-size: 1.25rem;
+  }
+
+  .signup {
+    padding: 40px 0 64px;
+  }
+
+  .signup-card {
+    padding: 28px 22px;
   }
 }
