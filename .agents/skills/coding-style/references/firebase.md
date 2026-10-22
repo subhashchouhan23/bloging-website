@@ -146,11 +146,13 @@ export async function uploadPostImage(postId: string, file: File): Promise<strin
 
 ```bash
 npm run build
-firebase deploy --only hosting,firestore:rules,storage
+firebase deploy --only hosting,firestore:rules
 ```
 
 - Hosting serves `dist/`, SPA rewrites to `/index.html`
 - Deploy rules with the app; rules are not deployed by `hosting` alone
+- Cloud Storage requires the Blaze plan on new projects; deploy `storage.rules`
+  only after the upgrade (`firebase deploy --only storage`)
 - Use emulators for local work: `firebase emulators:start`
 
 ## Do not add

@@ -114,9 +114,9 @@ node scripts/style-check.js src --strict
 # run the suite
 node --test test/
 
-# deploy the client and rules
+# deploy the client and Firestore rules (Storage needs Blaze)
 npm run build
-firebase deploy --only hosting,firestore:rules,storage
+firebase deploy --only hosting,firestore:rules
 ```
 
 ## Auth
