@@ -53,7 +53,7 @@ const RULE_FIXTURES = {
   S015: 'bad/s015-too-long.js',
   S016: 'bad/s016-commented-code.js',
   S017: 'bad/s017-hardcoded-config.ts',
-  S018: 'bad/s018-second-init.ts',
+  S018: 'bad/src/second-init.ts',
   S019: 'bad/s019-admin-import.ts',
   S020: 'bad/src/sdk-in-component.ts',
   S021: 'bad/s021-banned-lib.ts',

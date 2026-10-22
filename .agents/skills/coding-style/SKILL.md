@@ -61,7 +61,7 @@ Errors block completion:
 | S012 | No class components; functional components and hooks only |
 | S013 | `.jsx`/`.tsx` component files are PascalCase (`src/main.tsx` exempt) |
 | S017 | No hardcoded Firebase config; use `import.meta.env.VITE_*` |
-| S018 | `initializeApp` only in `src/lib/firebase.ts` |
+| S018 | `initializeApp` only in `src/lib/firebase.ts` (client source; tooling scripts exempt) |
 | S019 | No `firebase-admin` in client code |
 | S020 | `firebase/*` imports only under `src/lib/`; components use helpers |
 | S021 | React + Firebase only; no `next`, `axios`, `express`, `mongoose`, `prisma`, `@supabase/*`, `react-router*`, `react-query`/`swr`, `pg`, `mysql2`, `knex` |

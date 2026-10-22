@@ -81,7 +81,7 @@ Errors (block merge/commit):
 | S012 | No class components |
 | S013 | `.jsx`/`.tsx` component files must be PascalCase; `src/main.tsx` is exempt |
 | S017 | No hardcoded Firebase config; use `import.meta.env.VITE_*` |
-| S018 | `initializeApp` only in `src/lib/firebase.ts` |
+| S018 | `initializeApp` only in `src/lib/firebase.ts` (client source; tooling scripts exempt) |
 | S019 | No `firebase-admin` in client code |
 | S020 | `firebase/*` imports only under `src/lib/` |
 | S021 | No non-Firebase stack (`next`, `axios`, `express`, `mongoose`, `prisma`, `@supabase/*`, `react-router*`, `react-query`/`swr`, `pg`, `mysql2`, `knex`) |

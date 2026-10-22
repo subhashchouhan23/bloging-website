@@ -31,7 +31,7 @@ Checker: `node scripts/style-check.js <paths...> [--json] [--strict]`
 | TC-21 | Ignored directories | temp project with `node_modules/x.js` and `dist/y.js` containing `var` | no findings for those paths |
 | TC-22 | Path with spaces | check the repo's `.agents` path (contains a space) | exit 0 or findings, but command succeeds (no ENOENT) |
 | TC-34 | Hardcoded Firebase config | check `bad/s017-hardcoded-config.ts` | error `S017` |
-| TC-35 | Second `initializeApp` | check `bad/s018-second-init.ts` | error `S018` |
+| TC-35 | Second `initializeApp` | check `bad/src/second-init.ts` | error `S018` |
 | TC-36 | Admin SDK in client | check `bad/s019-admin-import.ts` | error `S019` |
 | TC-37 | SDK imported in component | check `bad/src/sdk-in-component.ts` | error `S020` |
 | TC-38 | Banned library | check `bad/s021-banned-lib.ts` | error `S021` |

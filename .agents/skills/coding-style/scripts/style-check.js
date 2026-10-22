@@ -186,8 +186,8 @@ function checkFile(file, text) {
     }
   }
 
-  // S018 single initializeApp
-  if (!/(^|\/)src\/lib\/firebase\.ts$/.test(normalize(file))) {
+  // S018 single initializeApp in client code
+  if (isSrc(file) && !/(^|\/)src\/lib\/firebase\.ts$/.test(normalize(file))) {
     masked.forEach((l, idx) => {
       if (/\binitializeApp\s*\(/.test(l)) add('S018', idx + 1, l.indexOf('initializeApp') + 1);
     });
