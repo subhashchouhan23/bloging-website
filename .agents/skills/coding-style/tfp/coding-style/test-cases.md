@@ -30,6 +30,11 @@ Checker: `node scripts/style-check.js <paths...> [--json] [--strict]`
 | TC-20 | Exit code matrix | errors / warnings-only / warnings-only `--strict` | `1` / `0` / `1` |
 | TC-21 | Ignored directories | temp project with `node_modules/x.js` and `dist/y.js` containing `var` | no findings for those paths |
 | TC-22 | Path with spaces | check the repo's `.agents` path (contains a space) | exit 0 or findings, but command succeeds (no ENOENT) |
+| TC-34 | Hardcoded Firebase config | check `bad/s017-hardcoded-config.ts` | error `S017` |
+| TC-35 | Second `initializeApp` | check `bad/s018-second-init.ts` | error `S018` |
+| TC-36 | Admin SDK in client | check `bad/s019-admin-import.ts` | error `S019` |
+| TC-37 | SDK imported in component | check `bad/src/sdk-in-component.ts` | error `S020` |
+| TC-38 | Banned library | check `bad/s021-banned-lib.ts` | error `S021` |
 
 ## B. Skill integrity
 
@@ -43,6 +48,9 @@ Checker: `node scripts/style-check.js <paths...> [--json] [--strict]`
 | TC-28 | Dogfooding | `scripts/style-check.js` passes S001–S013 against itself |
 | TC-29 | Fixture coverage | every rule `S001`–`S016` has a fixture referenced by the test table |
 | TC-30 | Good examples clean | `references/examples/` yields zero findings |
+| TC-39 | Clean Vite + Firebase project | check `fixtures/good-app` | exit 0, zero findings |
+| TC-40 | Entry file exemption | check `good-app/src/main.tsx`, then `bad/s013-badname.tsx` | main passes; bad file gets `S013` |
+| TC-41 | Firebase docs | `references/firebase.md` exists; `SKILL.md` mentions `S017`–`S021` | present |
 
 ## C. Manual acceptance
 

@@ -16,7 +16,9 @@ code is written in the same style as the existing scripts (`_extract.js`,
 In scope:
 
 - Node.js CommonJS scripts (`require`, `process.argv`, CLI entry points)
-- Browser/frontend code: React + TypeScript (`.ts`, `.tsx`), functional components
+- Client: Vite + React + TypeScript (`.ts`, `.tsx`)
+- Firebase: Firestore (data), Cloud Storage (files), Hosting (deploy), no Auth yet
+- Firebase SDK usage isolated in `src/lib/` with typed helpers
 - A dependency-free checker, fixtures, and a `node:test` suite
 
 Out of scope:
@@ -25,6 +27,7 @@ Out of scope:
 - Grading free-form LLM output
 - Non-JS assets (CSS/HTML/Markdown) except doc integrity checks
 - Replacing a real parser; `S003` and `S016` are documented heuristics
+- Adding other frameworks, routers, UI kits, data libraries, or backends
 
 ## 3. Functional requirements
 
@@ -40,6 +43,11 @@ Out of scope:
 | FR-8 | Requirements and test cases are committed under `tfp/coding-style/` on the feature branch |
 | FR-9 | Directory walks skip `node_modules`, `.git`, `dist`, `build`, `coverage`, `.next`, `out` and `test/fixtures` |
 | FR-10 | Paths containing spaces must work (this repo lives in `D:\bloging website`) |
+| FR-11 | Firebase config comes from `import.meta.env.VITE_*`; no literals in source |
+| FR-12 | `initializeApp` is called only in `src/lib/firebase.ts`; Firestore/Storage are exported from there |
+| FR-13 | `firebase/*` imports are allowed only under `src/lib/`; components consume typed helpers |
+| FR-14 | `firebase-admin` and other backends are rejected in client code |
+| FR-15 | The only stack is React + TypeScript + Firebase; alternate frameworks, databases, routers, and data libraries are rejected |
 
 ## 4. Non-functional requirements
 
@@ -69,7 +77,12 @@ Errors (block merge/commit):
 | S010 | Never mix `require` and `import`/`export` in one file |
 | S011 | No `any` in TypeScript |
 | S012 | No class components |
-| S013 | `.jsx`/`.tsx` component files must be PascalCase |
+| S013 | `.jsx`/`.tsx` component files must be PascalCase; `src/main.tsx` is exempt |
+| S017 | No hardcoded Firebase config; use `import.meta.env.VITE_*` |
+| S018 | `initializeApp` only in `src/lib/firebase.ts` |
+| S019 | No `firebase-admin` in client code |
+| S020 | `firebase/*` imports only under `src/lib/` |
+| S021 | No non-Firebase stack (`next`, `axios`, `express`, `mongoose`, `prisma`, `@supabase/*`, `react-router*`, `react-query`/`swr`, `pg`, `mysql2`, `knex`) |
 
 Warnings (`--strict` promotes them):
 
@@ -87,6 +100,8 @@ Warnings (`--strict` promotes them):
 3. `node scripts/style-check.js references/examples` reports no findings.
 4. `SKILL.md` references every rule ID and documents the workflow and commands.
 5. Branch `feature/coding-style-skill` contains the skill plus these docs.
+6. The clean Vite + Firebase fixture (`fixtures/good-app`) passes with zero findings.
+7. `references/firebase.md` documents env config, single init, helpers, rules, and deploy.
 
 ## 7. Design decisions
 
@@ -98,3 +113,7 @@ Warnings (`--strict` promotes them):
   scripts, while correctness-of-style rules error.
 - **Fixtures are excluded from normal scans** so `style-check .` stays green while
   the bad fixtures still exist for tests.
+- **Firebase is isolated:** `src/lib/firebase.ts` owns initialization and exports
+  `app`, `db`, `storage`; helpers in `src/lib` keep SDK types away from components.
+- **No second stack:** banned-module detection is intentionally explicit and cheap,
+  matching the "React + Firebase only" constraint.

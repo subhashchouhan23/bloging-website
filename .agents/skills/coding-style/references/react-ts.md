@@ -43,9 +43,13 @@ function PostCard({ title, slug }: PostCardProps) {
 
 ## State and data
 
+- Data comes from `src/lib` helpers; do not import `firebase/*` in components (S020)
+- Firebase config comes from `import.meta.env` (S017); `initializeApp` lives only
+  in `src/lib/firebase.ts` (S018)
 - Derive values instead of storing duplicates
 - Prefer `const` bindings; `let` only for reassignment (S007 covers `var`)
 - No `console.*` in `src/`; log through the app's logger or throw (S009)
+- No router, data-fetching library, or UI kit; React + Firebase only (S021)
 
 ## Styling and markup
 

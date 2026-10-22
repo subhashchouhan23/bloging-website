@@ -33,6 +33,7 @@ function tempProject(files) {
 const RULES = [
   'S001', 'S002', 'S003', 'S004', 'S005', 'S006', 'S007', 'S008',
   'S009', 'S010', 'S011', 'S012', 'S013', 'S014', 'S015', 'S016',
+  'S017', 'S018', 'S019', 'S020', 'S021',
 ];
 const RULE_FIXTURES = {
   S001: 'bad/s001-tabs.js',
@@ -51,6 +52,11 @@ const RULE_FIXTURES = {
   S014: 'bad/s014-long-no-banner.js',
   S015: 'bad/s015-too-long.js',
   S016: 'bad/s016-commented-code.js',
+  S017: 'bad/s017-hardcoded-config.ts',
+  S018: 'bad/s018-second-init.ts',
+  S019: 'bad/s019-admin-import.ts',
+  S020: 'bad/src/sdk-in-component.ts',
+  S021: 'bad/s021-banned-lib.ts',
 };
 
 // ---- section A: checker behavior ----
@@ -171,4 +177,17 @@ test('TC-30 reference examples are clean', () => {
   const res = run([path.join(root, 'references', 'examples')]);
   assert.strictEqual(res.status, 0, res.stdout + res.stderr);
   assert.deepStrictEqual(findingsOf(path.join(root, 'references', 'examples')), []);
+});
+
+test('TC-39 clean vite + firebase project passes', () => {
+  const dir = path.join(fixtures, 'good-app');
+  const res = run([dir]);
+  assert.strictEqual(res.status, 0, res.stdout + res.stderr);
+  assert.deepStrictEqual(findingsOf(dir), []);
+});
+
+test('TC-40 main.tsx is exempt from S013', () => {
+  assert.deepStrictEqual(findingsOf(path.join(fixtures, 'good-app/src/main.tsx')), []);
+  const bad = findingsOf(path.join(fixtures, 'bad/s013-badname.tsx'));
+  assert.ok(bad.some(f => f.rule === 'S013'));
 });

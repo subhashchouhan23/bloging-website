@@ -11,4 +11,6 @@ Run these before handing code back:
 7. Logging: `console.*` only in CLI scripts, never in `src/`.
 8. Structure: section banners `// ---- name ----` on files over 60 lines; no commented-out code.
 9. Errors: catch must log, rethrow, or return a documented fallback.
-10. Verify: checker exits 0 on touched files and `node --test test/` is green.
+10. Firebase: env-based config, one `initializeApp`, SDK only in `src/lib`, no admin SDK.
+11. Stack: React + TypeScript + Firebase only; no router, axios, UI kit, or alternate DB.
+12. Verify: checker exits 0 on touched files and `node --test test/` is green.

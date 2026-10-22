@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const { scan, codeView, importsOf, normalize, isSrc, isSrcLib } = require('./tokenize');
+
 // ---- rule catalog ----
 const RULES = {
   S001: { severity: 'error', message: 'no tab indentation; use 2 spaces per level' },
@@ -19,6 +21,11 @@ const RULES = {
   S014: { severity: 'warn', message: 'files over 60 lines need // ---- section ---- banners' },
   S015: { severity: 'warn', message: 'file is longer than 400 lines' },
   S016: { severity: 'warn', message: 'commented-out code' },
+  S017: { severity: 'error', message: 'no hardcoded Firebase config; use import.meta.env.VITE_*' },
+  S018: { severity: 'error', message: 'initializeApp only in src/lib/firebase.ts' },
+  S019: { severity: 'error', message: 'never import firebase-admin in client code' },
+  S020: { severity: 'error', message: 'firebase/* SDK imports only under src/lib/' },
+  S021: { severity: 'error', message: 'this stack is React + Firebase only' },
 };
 
 const CODE_EXT = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx']);
@@ -26,126 +33,9 @@ const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', 
 const MAX_LINE = 140;
 const MAX_LINES = 400;
 const BANNER_MIN = 60;
-const REGEX_PREV = new Set(['', '(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '\n', '<']);
-
-// ---- tokenizer: mask strings/comments, keep positions ----
-function scan(text) {
-  const masked = text.split('');
-  const strings = [];
-  const comments = [];
-  let i = 0;
-  let lineNo = 1;
-  let lineStart = 0;
-  let prev = '';
-
-  function advanceTo(end) {
-    for (let k = i; k < end; k++) {
-      if (text[k] === '\n') { lineNo++; lineStart = k + 1; }
-    }
-    i = end;
-  }
-
-  function blank(from, to) {
-    for (let k = from; k < to; k++) {
-      if (text[k] !== '\n' && text[k] !== '\r') masked[k] = ' ';
-    }
-  }
-
-  function pushString(start, close, quote) {
-    const col = start - lineStart + 1;
-    const end = close < text.length ? close + 1 : close;
-    strings.push({ quote, line: lineNo, col, start, value: text.slice(start + 1, close) });
-    blank(start, end);
-    advanceTo(end);
-    prev = '§';
-  }
-
-  while (i < text.length) {
-    const ch = text[i];
-    const next = text[i + 1];
-
-    if (ch === '\n' || ch === '\r') {
-      i++;
-      if (ch === '\n') { lineNo++; lineStart = i; }
-      prev = '\n';
-      continue;
-    }
-
-    if (ch === '/' && next === '/') {
-      const end = text.indexOf('\n', i);
-      const stop = end === -1 ? text.length : end;
-      comments.push({ line: lineNo, col: i - lineStart + 1, value: text.slice(i + 2, stop) });
-      blank(i, stop);
-      advanceTo(stop);
-      continue;
-    }
-
-    if (ch === '/' && next === '*') {
-      const end = text.indexOf('*/', i + 2);
-      const stop = end === -1 ? text.length : end + 2;
-      comments.push({ line: lineNo, col: i - lineStart + 1, value: text.slice(i + 2, end === -1 ? text.length : end) });
-      blank(i, stop);
-      advanceTo(stop);
-      continue;
-    }
-
-    if (ch === "'" || ch === '"' || ch === '`') {
-      const close = findQuoteEnd(text, i);
-      pushString(i, close, ch);
-      continue;
-    }
-
-    if (ch === '/' && REGEX_PREV.has(prev)) {
-      const end = findRegexEnd(text, i);
-      if (end > 0) {
-        blank(i, end);
-        advanceTo(end);
-        prev = '§';
-        continue;
-      }
-    }
-
-    prev = ch;
-    i++;
-  }
-
-  return { masked: masked.join(''), strings, comments };
-}
-
-function findQuoteEnd(text, start) {
-  const quote = text[start];
-  let i = start + 1;
-  while (i < text.length) {
-    if (text[i] === '\\') { i += 2; continue; }
-    if (text[i] === quote) return i;
-    i++;
-  }
-  return text.length;
-}
-
-function findRegexEnd(text, start) {
-  let i = start + 1;
-  let inClass = false;
-  while (i < text.length && text[i] !== '\n') {
-    if (text[i] === '\\') { i += 2; continue; }
-    if (text[i] === '[') inClass = true;
-    else if (text[i] === ']') inClass = false;
-    else if (text[i] === '/' && !inClass) {
-      i++;
-      while (i < text.length && /[a-z]/i.test(text[i])) i++;
-      return i;
-    }
-    i++;
-  }
-  return -1;
-}
-
-function codeView(text, tokens) {
-  const chars = text.split('');
-  for (const s of tokens.strings) chars[s.start] = '§';
-  return chars.join('');
-}
-
+const CONFIG_KEYS = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+const BANNED_MODULES = ['next', 'axios', 'express', 'mongoose', 'prisma', '@prisma/client', 'pg', 'mysql2', 'knex', 'swr'];
+const BANNED_PREFIXES = ['@supabase/', 'react-router', '@tanstack/react-query'];
 function isJsx(file) {
   return file.endsWith('.jsx') || file.endsWith('.tsx');
 }
@@ -271,7 +161,7 @@ function checkFile(file, text) {
   // S013 component filenames
   if (isJsx(file)) {
     const base = path.basename(file, ext);
-    if (!/^[A-Z][A-Za-z0-9]*$/.test(base)) add('S013', 1, 1, base);
+    if (!/^[A-Z][A-Za-z0-9]*$/.test(base) && base !== 'main') add('S013', 1, 1, base);
   }
 
   // S014 section banners
@@ -286,6 +176,29 @@ function checkFile(file, text) {
     if (/^(const|let|var|function|class|import|export|return|if|for|while)\b/.test(body) && /[=({]/.test(body)) {
       add('S016', c.line, c.col);
     }
+  }
+
+  // S017 hardcoded firebase config
+  for (const s of scanResult.strings) {
+    const before = maskedText.slice(Math.max(0, s.start - 60), s.start);
+    for (const key of CONFIG_KEYS) {
+      if (new RegExp(key + '\\s*:\\s*$').test(before)) add('S017', s.line, s.col, key);
+    }
+  }
+
+  // S018 single initializeApp
+  if (!/(^|\/)src\/lib\/firebase\.ts$/.test(normalize(file))) {
+    masked.forEach((l, idx) => {
+      if (/\binitializeApp\s*\(/.test(l)) add('S018', idx + 1, l.indexOf('initializeApp') + 1);
+    });
+  }
+
+  // S019-S021 module allowlist
+  for (const imp of importsOf(scanResult)) {
+    const spec = imp.spec;
+    if (spec === 'firebase-admin' || spec.indexOf('firebase-admin/') === 0) add('S019', imp.line, imp.col);
+    if (spec.indexOf('firebase/') === 0 && isSrc(file) && !isSrcLib(file)) add('S020', imp.line, imp.col, spec);
+    if (BANNED_MODULES.indexOf(spec) !== -1 || BANNED_PREFIXES.some(p => spec.indexOf(p) === 0)) add('S021', imp.line, imp.col, spec);
   }
 
   return findings;
@@ -348,6 +261,7 @@ function main() {
 
   const findings = [];
   for (const f of files) findings.push(...checkFile(f, fs.readFileSync(f, 'utf8')));
+  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
 
   const errors = findings.filter(x => x.severity === 'error').length;
   const warnings = findings.length - errors;

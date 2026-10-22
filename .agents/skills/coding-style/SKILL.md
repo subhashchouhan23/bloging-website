@@ -1,12 +1,21 @@
 ---
 name: coding-style
-description: Apply this repo's JavaScript and TypeScript conventions to scripts, React components, and utilities. Use when writing, reviewing, or refactoring JS/TS code, or when asked to match the project's style.
+description: Apply this repo's JavaScript and TypeScript conventions to a React + TypeScript client backed by Firebase (Firestore, Storage, Hosting), plus Node scripts. Use when writing, reviewing, or refactoring JS/TS code, wiring Firebase, or when asked to match the project's style.
 ---
 
 # Coding style
 
 Match the author's style: dense, dependency-free, plain code with short names and
-section banners. Applies to Node CommonJS scripts and React + TypeScript frontend code.
+section banners. Applies to Node CommonJS scripts and the React + TypeScript client
+that uses Firebase for data, file storage, and deployment.
+
+## Stack
+
+- Client: Vite + React + TypeScript, deployed to Firebase Hosting
+- Data: Firestore; files: Cloud Storage; no Auth yet
+- Firebase SDK is isolated in `src/lib/` (`firebase.ts` for init, domain helpers like `posts.ts`, `storage.ts`)
+- Nothing else: no Next.js, router, UI kit, axios, react-query, or alternate backend
+
 
 ## When to use
 
@@ -50,7 +59,12 @@ Errors block completion:
 | S010 | Never mix `require` with `import`/`export` in one file |
 | S011 | No `any` in TypeScript; use `unknown` and narrow |
 | S012 | No class components; functional components and hooks only |
-| S013 | `.jsx`/`.tsx` component files are PascalCase |
+| S013 | `.jsx`/`.tsx` component files are PascalCase (`src/main.tsx` exempt) |
+| S017 | No hardcoded Firebase config; use `import.meta.env.VITE_*` |
+| S018 | `initializeApp` only in `src/lib/firebase.ts` |
+| S019 | No `firebase-admin` in client code |
+| S020 | `firebase/*` imports only under `src/lib/`; components use helpers |
+| S021 | React + Firebase only; no `next`, `axios`, `express`, `mongoose`, `prisma`, `@supabase/*`, `react-router*`, `react-query`/`swr`, `pg`, `mysql2`, `knex` |
 
 Warnings (promoted to errors by `--strict`):
 
@@ -99,6 +113,10 @@ node scripts/style-check.js src --strict
 
 # run the suite
 node --test test/
+
+# deploy the client
+npm run build
+firebase deploy --only hosting,firestore:rules,storage
 ```
 
 ## Review checklist
@@ -111,6 +129,7 @@ console only in scripts, banners on long files, and passing checker + tests.
 
 - `references/node-js.md` — Node script conventions
 - `references/react-ts.md` — React/TS conventions
+- `references/firebase.md` — Firestore, Storage, hosting and environment setup
 - `references/review-checklist.md` — pre-handoff checklist
 - `references/examples/` — passing examples for both targets
 - `scripts/style-check.js` — the checker
